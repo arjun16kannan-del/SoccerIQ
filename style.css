@@ -370,3 +370,46 @@ h1 {
 #ai-result li {
     margin-bottom: 7px;
 }
+.edit-match,
+.delete-match {
+    padding: 7px 13px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    margin: 3px 5px;
+}
+
+.edit-match {
+    background-color: #245c3b;
+    color: #d9fbe4;
+}
+
+.edit-match:hover {
+    background-color: #32794e;
+    transform: translateY(-1px);
+}
+
+.delete-match {
+    background-color: #572d2d;
+    color: #ffdada;
+}
+
+.delete-match:hover {
+    background-color: #783b3b;
+    transform: translateY(-1px);
+}
+
+#match-history td:last-child {
+    white-space: nowrap;
+    min-width: 150px;
+}
+html {
+    scroll-behavior: smooth;
+}
+
+section[id] {
+    scroll-margin-top: 95px;
+}

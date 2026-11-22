@@ -11,14 +11,16 @@
     <header class="topbar">
         <div class="logo">Soccer<span>IQ</span></div>
         <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a href="#">Match History</a>
-            <a href="#">Analytics</a>
+            <nav>
+    <a href="#dashboard" class="active">Dashboard</a>
+    <a href="#match-history-section">Match History</a>
+    <a href="#analytics-section">Analytics</a>
+</nav>
         </nav>
     </header>
 
     <main class="container">
-        <section class="welcome">
+        <section class="welcome" id="dashboard">
             <div>
                 <p class="eyebrow">PLAYER OVERVIEW</p>
                 <h1>Your Performance</h1>
@@ -64,7 +66,7 @@
                 <p class="placeholder">Your personalized insights will appear here.</p>
             </div>
         </section>
-        <section class="panel history-panel">
+        <section class="panel history-panel" id="match-history-section">
     <div class="history-header">
         <div>
             <p class="eyebrow">YOUR RECORDS</p>
@@ -94,7 +96,7 @@
         No matches recorded yet. Add your first match to get started!
     </p>
 </section>
-<section class="panel analytics-panel">
+<section class="panel analytics-panel" id="analytics-section">
     <div class="history-header">
         <div>
             <p class="eyebrow">PERFORMANCE TRENDS</p>

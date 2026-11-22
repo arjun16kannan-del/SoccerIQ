@@ -2,23 +2,57 @@ const addMatchButton = document.querySelector(".welcome .add-match");
 const matchModal = document.getElementById("match-modal");
 const closeModalButton = document.getElementById("close-modal");
 const matchForm = document.getElementById("match-form");
+const historyContainer = document.getElementById("match-history");
+const modalTitle = document.querySelector(".modal-header h2");
+const submitMatchButton = matchForm.querySelector('button[type="submit"]');
 
 let matches = JSON.parse(localStorage.getItem("soccerIQMatches")) || [];
 let performanceChart = null;
 let contributionsChart = null;
+let editingMatchIndex = null;
+
+function saveMatches() {
+    localStorage.setItem("soccerIQMatches", JSON.stringify(matches));
+}
+
+function refreshDashboard() {
+    saveMatches();
+    updateDashboard();
+    renderMatchHistory();
+    updatePerformanceChart();
+    updateContributionsChart();
+}
+
+function openAddMatchModal() {
+    editingMatchIndex = null;
+    matchForm.reset();
+    modalTitle.textContent = "Add a Match";
+    submitMatchButton.textContent = "Save Match";
+    matchModal.hidden = false;
+}
+
+function closeMatchModal() {
+    matchModal.hidden = true;
+    editingMatchIndex = null;
+    matchForm.reset();
+    modalTitle.textContent = "Add a Match";
+    submitMatchButton.textContent = "Save Match";
+}
 
 function renderMatchHistory() {
-    const historyContainer = document.getElementById("match-history");
     const historyCount = document.getElementById("history-count");
     const emptyHistory = document.getElementById("empty-history");
 
     historyContainer.replaceChildren();
 
     historyCount.textContent = matches.length + (matches.length === 1 ? " match" : " matches");
-
     emptyHistory.hidden = matches.length > 0;
 
-    matches.slice().reverse().forEach(function(match) {
+    matches.map(function(match, index) {
+        return { match: match, index: index };
+    }).reverse().forEach(function(item) {
+        const match = item.match;
+        const index = item.index;
         const row = document.createElement("tr");
 
         const passAccuracy = match.passesAttempted > 0
@@ -40,19 +74,34 @@ function renderMatchHistory() {
             row.appendChild(cell);
         });
 
+        const actionsCell = document.createElement("td");
+        actionsCell.className = "match-actions";
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        editButton.className = "edit-match";
+        editButton.dataset.index = index;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "delete-match";
+        deleteButton.dataset.index = index;
+
+        actionsCell.appendChild(editButton);
+        actionsCell.appendChild(deleteButton);
+        row.appendChild(actionsCell);
+
         historyContainer.appendChild(row);
     });
 }
 
 function updateDashboard() {
     const totalMatches = matches.length;
-
     const totalGoals = matches.reduce((sum, match) => sum + match.goals, 0);
-
     const totalAssists = matches.reduce((sum, match) => sum + match.assists, 0);
-
     const totalPasses = matches.reduce((sum, match) => sum + match.passesAttempted, 0);
-
     const completedPasses = matches.reduce((sum, match) => sum + match.passesCompleted, 0);
 
     const passAccuracy = totalPasses > 0
@@ -209,23 +258,73 @@ function updateContributionsChart() {
     });
 }
 
-addMatchButton.addEventListener("click", function() {
-    matchModal.hidden = false;
-});
+function editMatch(index) {
+    const match = matches[index];
 
-closeModalButton.addEventListener("click", function() {
-    matchModal.hidden = true;
-});
+    if (!match) {
+        return;
+    }
+
+    editingMatchIndex = index;
+
+    Object.keys(match).forEach(function(key) {
+        const field = matchForm.elements.namedItem(key);
+
+        if (field) {
+            field.value = match[key];
+        }
+    });
+
+    modalTitle.textContent = "Edit Match";
+    submitMatchButton.textContent = "Save Changes";
+    matchModal.hidden = false;
+}
+
+function deleteMatch(index) {
+    const match = matches[index];
+
+    if (!match) {
+        return;
+    }
+
+    const confirmed = confirm(
+        "Are you sure you want to delete the match against " + match.opponent + "?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    matches.splice(index, 1);
+    refreshDashboard();
+}
+
+addMatchButton.addEventListener("click", openAddMatchModal);
+
+closeModalButton.addEventListener("click", closeMatchModal);
 
 matchModal.addEventListener("click", function(event) {
     if (event.target === matchModal) {
-        matchModal.hidden = true;
+        closeMatchModal();
     }
 });
 
 document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") {
-        matchModal.hidden = true;
+        closeMatchModal();
+    }
+});
+
+historyContainer.addEventListener("click", function(event) {
+    const editButton = event.target.closest(".edit-match");
+    const deleteButton = event.target.closest(".delete-match");
+
+    if (editButton) {
+        editMatch(Number(editButton.dataset.index));
+    }
+
+    if (deleteButton) {
+        deleteMatch(Number(deleteButton.dataset.index));
     }
 });
 
@@ -280,20 +379,20 @@ matchForm.addEventListener("submit", function(event) {
         return;
     }
 
-    matches.push(match);
+    if (editingMatchIndex !== null) {
+        matches[editingMatchIndex] = match;
+    } else {
+        matches.push(match);
+    }
 
-    localStorage.setItem("soccerIQMatches", JSON.stringify(matches));
+    refreshDashboard();
+    closeMatchModal();
 
-    updateDashboard();
-    renderMatchHistory();
-    updatePerformanceChart();
-    updateContributionsChart();
-
-    matchForm.reset();
-    matchModal.hidden = true;
-
-    alert("Match saved successfully!");
+    alert(editingMatchIndex === null
+        ? "Match saved successfully!"
+        : "Match updated successfully!");
 });
+
 const analyzeButton = document.getElementById("analyze-button");
 const aiAnalysis = document.getElementById("ai-analysis");
 const aiStatus = document.getElementById("ai-status");
@@ -329,42 +428,42 @@ analyzeButton.addEventListener("click", async function() {
 
         aiStatus.textContent = "Analysis complete";
 
-const lines = data.analysis.split("\n");
-let currentList = null;
+        const lines = data.analysis.split("\n");
+        let currentList = null;
 
-lines.forEach(function(line) {
-    const trimmedLine = line.trim();
+        lines.forEach(function(line) {
+            const trimmedLine = line.trim();
 
-    if (!trimmedLine) {
-        currentList = null;
-        return;
-    }
+            if (!trimmedLine) {
+                currentList = null;
+                return;
+            }
 
-    if (trimmedLine.startsWith("### ") || trimmedLine.startsWith("## ") || trimmedLine.startsWith("**")) {
-        currentList = null;
+            if (trimmedLine.startsWith("### ") || trimmedLine.startsWith("## ") || trimmedLine.startsWith("**")) {
+                currentList = null;
 
-        const heading = document.createElement("h3");
-        heading.textContent = trimmedLine.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/:$/, "");
-        aiResult.appendChild(heading);
+                const heading = document.createElement("h3");
+                heading.textContent = trimmedLine.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/:$/, "");
+                aiResult.appendChild(heading);
 
-    } else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
-        if (!currentList) {
-            currentList = document.createElement("ul");
-            aiResult.appendChild(currentList);
-        }
+            } else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
+                if (!currentList) {
+                    currentList = document.createElement("ul");
+                    aiResult.appendChild(currentList);
+                }
 
-        const item = document.createElement("li");
-        item.textContent = trimmedLine.substring(2).replace(/\*\*/g, "");
-        currentList.appendChild(item);
+                const item = document.createElement("li");
+                item.textContent = trimmedLine.substring(2).replace(/\*\*/g, "");
+                currentList.appendChild(item);
 
-    } else {
-        currentList = null;
+            } else {
+                currentList = null;
 
-        const paragraph = document.createElement("p");
-        paragraph.textContent = trimmedLine.replace(/\*\*/g, "");
-        aiResult.appendChild(paragraph);
-    }
-});
+                const paragraph = document.createElement("p");
+                paragraph.textContent = trimmedLine.replace(/\*\*/g, "");
+                aiResult.appendChild(paragraph);
+            }
+        });
 
     } catch (error) {
         aiStatus.textContent = "Analysis unavailable";
@@ -373,7 +472,19 @@ lines.forEach(function(line) {
         analyzeButton.disabled = false;
     }
 });
+
 updateDashboard();
 renderMatchHistory();
 updatePerformanceChart();
 updateContributionsChart();
+const navigationLinks = document.querySelectorAll(".topbar nav a");
+
+navigationLinks.forEach(function(link) {
+    link.addEventListener("click", function() {
+        navigationLinks.forEach(function(item) {
+            item.classList.remove("active");
+        });
+
+        link.classList.add("active");
+    });
+});
