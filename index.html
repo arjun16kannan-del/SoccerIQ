@@ -11,15 +11,14 @@
     <header class="topbar">
         <div class="logo">Soccer<span>IQ</span></div>
         <nav>
-            <nav>
-    <a href="#dashboard" class="active">Dashboard</a>
-    <a href="#match-history-section">Match History</a>
-    <a href="#analytics-section">Analytics</a>
-</nav>
+            <a href="#dashboard" class="active">Dashboard</a>
+            <a href="#match-history-section">Match History</a>
+            <a href="#analytics-section">Analytics</a>
         </nav>
     </header>
 
     <main class="container">
+
         <section class="welcome" id="dashboard">
             <div>
                 <p class="eyebrow">PLAYER OVERVIEW</p>
@@ -57,107 +56,130 @@
 
         <section class="content-grid">
             <div class="panel">
-    <h3>Performance Overview</h3>
-    <div class="overview-grid">
-        <div class="overview-stat">
-            <p>Avg. Goals / Match</p>
-            <h2 id="avg-goals">--</h2>
-        </div>
+                <h3>Performance Overview</h3>
 
-        <div class="overview-stat">
-            <p>Shot Accuracy</p>
-            <h2 id="shot-accuracy">--%</h2>
-        </div>
+                <div class="overview-grid">
+                    <div class="overview-stat">
+                        <p>Avg. Goals / Match</p>
+                        <h2 id="avg-goals">--</h2>
+                    </div>
 
-        <div class="overview-stat">
-            <p>Avg. Key Passes / Match</p>
-            <h2 id="avg-key-passes">--</h2>
-        </div>
+                    <div class="overview-stat">
+                        <p>Shot Accuracy</p>
+                        <h2 id="shot-accuracy">--%</h2>
+                    </div>
 
-        <div class="overview-stat">
-            <p>Avg. Defensive Actions / Match</p>
-            <h2 id="avg-defensive-actions">--</h2>
-        </div>
-    </div>
-</div>
+                    <div class="overview-stat">
+                        <p>Avg. Key Passes / Match</p>
+                        <h2 id="avg-key-passes">--</h2>
+                    </div>
+
+                    <div class="overview-stat">
+                        <p>Avg. Defensive Actions / Match</p>
+                        <h2 id="avg-defensive-actions">--</h2>
+                    </div>
+                </div>
+            </div>
 
             <div class="panel">
-    <h3>Performance Insights</h3>
-    <div id="performance-insights" class="performance-insights">
-        <p class="placeholder">Add matches to generate performance insights.</p>
-    </div>
-</div>
+                <h3>Performance Insights</h3>
+                <div id="performance-insights" class="performance-insights">
+                    <p class="placeholder">Add matches to generate performance insights.</p>
+                </div>
+            </div>
         </section>
+
         <section class="panel history-panel" id="match-history-section">
-    <div class="history-header">
-        <div>
-            <p class="eyebrow">YOUR RECORDS</p>
-            <h2>Match History</h2>
-        </div>
-        <span id="history-count">0 matches</span>
-    </div>
+            <div class="history-header">
+                <div>
+                    <p class="eyebrow">YOUR RECORDS</p>
+                    <h2>Match History</h2>
+                </div>
+                <span id="history-count">0 matches</span>
+            </div>
 
-    <div class="table-container">
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Opponent</th>
-                    <th>Date</th>
-                    <th>Position</th>
-                    <th>Goals</th>
-                    <th>Assists</th>
-                    <th>Pass Accuracy</th>
-                </tr>
-            </thead>
-            <tbody id="match-history">
-            </tbody>
-        </table>
-    </div>
+            <div class="table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Opponent</th>
+                            <th>Date</th>
+                            <th>Position</th>
+                            <th>Goals</th>
+                            <th>Assists</th>
+                            <th>Pass Accuracy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="match-history">
+                    </tbody>
+                </table>
+            </div>
 
-    <p id="empty-history" class="placeholder">
-        No matches recorded yet. Add your first match to get started!
-    </p>
-</section>
-<section class="panel analytics-panel" id="analytics-section">
-    <div class="history-header">
-        <div>
-            <p class="eyebrow">PERFORMANCE TRENDS</p>
-            <h2>Pass Accuracy Over Time</h2>
-        </div>
-    </div>
+            <p id="empty-history" class="placeholder">
+                No matches recorded yet. Add your first match to get started!
+            </p>
+        </section>
 
-    <div class="chart-container">
-        <canvas id="pass-accuracy-chart"></canvas>
-    </div>
-</section>
-<section class="panel analytics-panel">
-    <div class="history-header">
-        <div>
-            <p class="eyebrow">ATTACKING PERFORMANCE</p>
-            <h2>Goals and Assists</h2>
-        </div>
-    </div>
+        <section id="analytics-section" class="analytics-grid">
 
-    <div class="chart-container">
-        <canvas id="contributions-chart"></canvas>
-    </div>
-</section>
-<section class="panel analytics-panel">
-    <div class="history-header">
-        <div>
-            <p class="eyebrow">SOCCERIQ AI</p>
-            <h2>AI Performance Analyst</h2>
-            <p class="placeholder">Get personalized insights based on your match statistics.</p>
-        </div>
-    </div>
+            <section class="panel analytics-panel">
+                <div class="history-header">
+                    <div>
+                        <p class="eyebrow">PASSING PERFORMANCE</p>
+                        <h2>Pass Accuracy</h2>
+                    </div>
+                </div>
 
-    <button class="add-match" id="analyze-button">Analyze My Performance</button>
+                <div class="chart-container">
+                    <canvas id="pass-accuracy-chart"></canvas>
+                </div>
+            </section>
 
-    <div id="ai-analysis" class="ai-analysis" hidden>
-        <p id="ai-status"></p>
-        <div id="ai-result"></div>
-    </div>
-</section>
+            <section class="panel analytics-panel">
+                <div class="history-header">
+                    <div>
+                        <p class="eyebrow">ATTACKING PERFORMANCE</p>
+                        <h2>Goals and Assists</h2>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="contributions-chart"></canvas>
+                </div>
+            </section>
+
+            <section class="panel analytics-panel">
+                <div class="history-header">
+                    <div>
+                        <p class="eyebrow">SHOOTING PERFORMANCE</p>
+                        <h2>Shots vs. Shots on Target</h2>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="shots-chart"></canvas>
+                </div>
+            </section>
+
+        </section>
+
+        <section class="panel analytics-panel ai-panel">
+            <div class="history-header">
+                <div>
+                    <p class="eyebrow">SOCCERIQ AI</p>
+                    <h2>AI Performance Analyst</h2>
+                    <p class="placeholder">Get personalized insights based on your match statistics.</p>
+                </div>
+            </div>
+
+            <button class="add-match" id="analyze-button">Analyze My Performance</button>
+
+            <div id="ai-analysis" class="ai-analysis" hidden>
+                <p id="ai-status"></p>
+                <div id="ai-result"></div>
+            </div>
+        </section>
+
     </main>
 
     <div class="modal-overlay" id="match-modal" hidden>
@@ -172,6 +194,7 @@
 
             <form id="match-form">
                 <div class="form-grid">
+
                     <div class="form-group">
                         <label for="opponent">Opponent</label>
                         <input type="text" id="opponent" name="opponent" placeholder="e.g. Lincoln High" required>
@@ -251,6 +274,7 @@
                         <label for="dribbles">Successful Dribbles</label>
                         <input type="number" id="dribbles" name="dribbles" min="0" value="0" required>
                     </div>
+
                 </div>
 
                 <button type="submit" class="add-match submit-match">Save Match</button>
@@ -259,6 +283,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

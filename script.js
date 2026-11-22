@@ -9,6 +9,7 @@ const submitMatchButton = matchForm.querySelector('button[type="submit"]');
 let matches = JSON.parse(localStorage.getItem("soccerIQMatches")) || [];
 let performanceChart = null;
 let contributionsChart = null;
+let shotsChart = null;
 let editingMatchIndex = null;
 
 function saveMatches() {
@@ -23,6 +24,7 @@ function refreshDashboard() {
     renderMatchHistory();
     updatePerformanceChart();
     updateContributionsChart();
+    updateShotsChart();
 }
 
 function openAddMatchModal() {
@@ -403,6 +405,78 @@ function updateContributionsChart() {
     });
 }
 
+function updateShotsChart() {
+    const chartCanvas = document.getElementById("shots-chart");
+
+    const chartLabels = matches.map(function(match) {
+        return match.opponent;
+    });
+
+    const shotsData = matches.map(function(match) {
+        return Number(match.shots) || 0;
+    });
+
+    const shotsOnTargetData = matches.map(function(match) {
+        return Number(match.shotsOnTarget) || 0;
+    });
+
+    if (shotsChart) {
+        shotsChart.destroy();
+    }
+
+    shotsChart = new Chart(chartCanvas, {
+        type: "bar",
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: "Total Shots",
+                    data: shotsData,
+                    backgroundColor: "#5b9bd5",
+                    borderRadius: 5
+                },
+                {
+                    label: "Shots on Target",
+                    data: shotsOnTargetData,
+                    backgroundColor: "#65d68a",
+                    borderRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#c5d1c9"
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: "#819087",
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: "#2b3c30"
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: "#819087"
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
 function editMatch(index) {
     const match = matches[index];
 
@@ -626,3 +700,4 @@ updatePerformanceInsights();
 renderMatchHistory();
 updatePerformanceChart();
 updateContributionsChart();
+updateShotsChart();
