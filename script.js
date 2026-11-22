@@ -18,6 +18,8 @@ function saveMatches() {
 function refreshDashboard() {
     saveMatches();
     updateDashboard();
+    updatePerformanceOverview();
+    updatePerformanceInsights();
     renderMatchHistory();
     updatePerformanceChart();
     updateContributionsChart();
@@ -99,6 +101,7 @@ function renderMatchHistory() {
 
 function updateDashboard() {
     const totalMatches = matches.length;
+
     const totalGoals = matches.reduce((sum, match) => sum + match.goals, 0);
     const totalAssists = matches.reduce((sum, match) => sum + match.assists, 0);
     const totalPasses = matches.reduce((sum, match) => sum + match.passesAttempted, 0);
@@ -111,8 +114,150 @@ function updateDashboard() {
     document.getElementById("total-matches").textContent = totalMatches;
     document.getElementById("total-goals").textContent = totalGoals;
     document.getElementById("total-assists").textContent = totalAssists;
+
     document.getElementById("pass-accuracy").textContent =
         passAccuracy === null ? "--%" : passAccuracy + "%";
+}
+
+function updatePerformanceOverview() {
+    const total = function(key) {
+        return matches.reduce(function(sum, match) {
+            return sum + (Number(match[key]) || 0);
+        }, 0);
+    };
+
+    const count = matches.length;
+
+    const averageGoals = count > 0
+        ? (total("goals") / count).toFixed(1)
+        : "0.0";
+
+    const averageKeyPasses = count > 0
+        ? (total("keyPasses") / count).toFixed(1)
+        : "0.0";
+
+    const averageDefensiveActions = count > 0
+        ? ((total("tackles") + total("interceptions")) / count).toFixed(1)
+        : "0.0";
+
+    const totalShots = total("shots");
+    const totalShotsOnTarget = total("shotsOnTarget");
+
+    const shotAccuracy = totalShots > 0
+        ? Math.round((totalShotsOnTarget / totalShots) * 100) + "%"
+        : "--%";
+
+    document.getElementById("avg-goals").textContent = averageGoals;
+    document.getElementById("shot-accuracy").textContent = shotAccuracy;
+    document.getElementById("avg-key-passes").textContent = averageKeyPasses;
+    document.getElementById("avg-defensive-actions").textContent = averageDefensiveActions;
+}
+
+function updatePerformanceInsights() {
+    const insightsContainer = document.getElementById("performance-insights");
+
+    if (!insightsContainer) {
+        return;
+    }
+
+    insightsContainer.replaceChildren();
+
+    if (matches.length === 0) {
+        const message = document.createElement("p");
+        message.className = "placeholder";
+        message.textContent = "Add matches to generate performance insights.";
+        insightsContainer.appendChild(message);
+        return;
+    }
+
+    const total = function(key) {
+        return matches.reduce((sum, match) => sum + (Number(match[key]) || 0), 0);
+    };
+
+    const count = matches.length;
+    const goalsAverage = total("goals") / count;
+    const assistsAverage = total("assists") / count;
+    const keyPassesAverage = total("keyPasses") / count;
+    const defensiveAverage = (total("tackles") + total("interceptions")) / count;
+
+    const shots = total("shots");
+    const shotAccuracy = shots > 0 ? (total("shotsOnTarget") / shots) * 100 : null;
+
+    const passes = total("passesAttempted");
+    const passAccuracy = passes > 0 ? (total("passesCompleted") / passes) * 100 : null;
+
+    const insights = [];
+
+    if (goalsAverage >= 1) {
+        insights.push({
+            title: "Attacking Contribution",
+            description: "You're averaging " + goalsAverage.toFixed(1) + " goals per match. You're making a consistent scoring contribution."
+        });
+    } else {
+        insights.push({
+            title: "Attacking Contribution",
+            description: "You're averaging " + goalsAverage.toFixed(1) + " goals per match. Look at your positioning and opportunities to get involved in attacking areas."
+        });
+    }
+
+    if (assistsAverage >= 0.5 || keyPassesAverage >= 2) {
+        insights.push({
+            title: "Chance Creation",
+            description: "You're averaging " + assistsAverage.toFixed(1) + " assists and " + keyPassesAverage.toFixed(1) + " key passes per match. You're contributing to your team's attacking play."
+        });
+    } else {
+        insights.push({
+            title: "Chance Creation",
+            description: "You're averaging " + keyPassesAverage.toFixed(1) + " key passes per match. Look for opportunities to create chances for teammates."
+        });
+    }
+
+    if (passAccuracy !== null) {
+        insights.push({
+            title: "Passing",
+            description: "Your overall pass accuracy is " + Math.round(passAccuracy) + "%. " +
+                (passAccuracy >= 80
+                    ? "You're maintaining a strong completion rate."
+                    : "There may be opportunities to improve your passing consistency.")
+        });
+    }
+
+    if (defensiveAverage >= 5) {
+        insights.push({
+            title: "Defensive Contribution",
+            description: "You're averaging " + defensiveAverage.toFixed(1) + " tackles and interceptions combined per match. You're contributing defensively."
+        });
+    } else {
+        insights.push({
+            title: "Defensive Contribution",
+            description: "You're averaging " + defensiveAverage.toFixed(1) + " defensive actions per match. Look for opportunities to win possession and disrupt opposition attacks."
+        });
+    }
+
+    if (shotAccuracy !== null) {
+        insights.push({
+            title: "Shooting",
+            description: "Your shot accuracy is " + Math.round(shotAccuracy) + "%. " +
+                (shotAccuracy >= 50
+                    ? "A good proportion of your attempts are reaching the target."
+                    : "Consider focusing on shot selection and accuracy.")
+        });
+    }
+
+    insights.forEach(function(insight) {
+        const card = document.createElement("div");
+        card.className = "insight-item";
+
+        const heading = document.createElement("h4");
+        heading.textContent = insight.title;
+
+        const description = document.createElement("p");
+        description.textContent = insight.description;
+
+        card.appendChild(heading);
+        card.appendChild(description);
+        insightsContainer.appendChild(card);
+    });
 }
 
 function updatePerformanceChart() {
@@ -310,7 +455,7 @@ matchModal.addEventListener("click", function(event) {
 });
 
 document.addEventListener("keydown", function(event) {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && !matchModal.hidden) {
         closeMatchModal();
     }
 });
@@ -379,7 +524,9 @@ matchForm.addEventListener("submit", function(event) {
         return;
     }
 
-    if (editingMatchIndex !== null) {
+    const wasEditing = editingMatchIndex !== null;
+
+    if (wasEditing) {
         matches[editingMatchIndex] = match;
     } else {
         matches.push(match);
@@ -388,9 +535,9 @@ matchForm.addEventListener("submit", function(event) {
     refreshDashboard();
     closeMatchModal();
 
-    alert(editingMatchIndex === null
-        ? "Match saved successfully!"
-        : "Match updated successfully!");
+    alert(wasEditing
+        ? "Match updated successfully!"
+        : "Match saved successfully!");
 });
 
 const analyzeButton = document.getElementById("analyze-button");
@@ -474,17 +621,8 @@ analyzeButton.addEventListener("click", async function() {
 });
 
 updateDashboard();
+updatePerformanceOverview();
+updatePerformanceInsights();
 renderMatchHistory();
 updatePerformanceChart();
 updateContributionsChart();
-const navigationLinks = document.querySelectorAll(".topbar nav a");
-
-navigationLinks.forEach(function(link) {
-    link.addEventListener("click", function() {
-        navigationLinks.forEach(function(item) {
-            item.classList.remove("active");
-        });
-
-        link.classList.add("active");
-    });
-});
