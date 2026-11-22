@@ -34,6 +34,48 @@ async function askAI(messages, maxTokens) {
     return data.message.content;
 }
 
+function extractSections(comparison) {
+    const headings = [
+        "Overall Summary",
+        "Attacking",
+        "Passing",
+        "Defending",
+        "Areas to Improve"
+    ];
+
+    const sections = {};
+    const headingPattern = /^###\s+(.+)$/gm;
+    const matches = [...comparison.matchAll(headingPattern)];
+
+    matches.forEach((headingMatch, index) => {
+        const heading = headingMatch[1].trim();
+        const sectionStart = headingMatch.index + headingMatch[0].length;
+        const sectionEnd = index + 1 < matches.length
+            ? matches[index + 1].index
+            : comparison.length;
+
+        const content = comparison
+            .slice(sectionStart, sectionEnd)
+            .trim();
+
+        const matchingHeading = headings.find(function(item) {
+            return item.toLowerCase() === heading.toLowerCase();
+        });
+
+        if (matchingHeading) {
+            sections[matchingHeading] = content;
+        }
+    });
+
+    headings.forEach(function(heading) {
+        if (!sections[heading]) {
+            sections[heading] = "This section could not be generated. Please try analyzing again.";
+        }
+    });
+
+    return sections;
+}
+
 app.get("/api/health", (req, res) => {
     res.json({
         status: "online",
@@ -53,27 +95,27 @@ app.post("/api/analyze", async (req, res) => {
 
         const individualReports = [];
 
-for (let i = 0; i < matches.length; i++) {
-    const match = matches[i];
+        for (let i = 0; i < matches.length; i++) {
+            const match = matches[i];
 
-    const passesAttempted = Number(match.passesAttempted) || 0;
-    const passesCompleted = Number(match.passesCompleted) || 0;
-    const shots = Number(match.shots) || 0;
-    const shotsOnTarget = Number(match.shotsOnTarget) || 0;
-    const goals = Number(match.goals) || 0;
+            const passesAttempted = Number(match.passesAttempted) || 0;
+            const passesCompleted = Number(match.passesCompleted) || 0;
+            const shots = Number(match.shots) || 0;
+            const shotsOnTarget = Number(match.shotsOnTarget) || 0;
+            const goals = Number(match.goals) || 0;
 
-    const calculatedStats = {
-        ...match,
-        passingAccuracy: passesAttempted > 0
-            ? Number(((passesCompleted / passesAttempted) * 100).toFixed(1))
-            : null,
-        shotAccuracy: shots > 0
-            ? Number(((shotsOnTarget / shots) * 100).toFixed(1))
-            : null,
-        goalConversion: shots > 0
-            ? Number(((goals / shots) * 100).toFixed(1))
-            : null
-    };
+            const calculatedStats = {
+                ...match,
+                passingAccuracy: passesAttempted > 0
+                    ? Number(((passesCompleted / passesAttempted) * 100).toFixed(1))
+                    : null,
+                shotAccuracy: shots > 0
+                    ? Number(((shotsOnTarget / shots) * 100).toFixed(1))
+                    : null,
+                goalConversion: shots > 0
+                    ? Number(((goals / shots) * 100).toFixed(1))
+                    : null
+            };
 
             const report = await askAI([
                 {
@@ -157,25 +199,29 @@ Important accuracy rules:
 - Distinguish between demonstrated patterns and possible explanations.
 - Do not repeat individual match reports unnecessarily.
 - If there is not enough evidence to make a conclusion, explain that limitation.
+- Do not suggest tracking additional statistics.
+- Do not place information in a category unless the supplied data supports it.
+- Do not invent statistics that were not recorded.
+- If a category has insufficient evidence, clearly say so.
 
-Write these sections:
+Write exactly these five sections, using the exact headings shown:
 
-### Overall Player Profile
-Describe the player's apparent playing style based on recurring statistical patterns.
+### Overall Summary
+Give a concise overview of the player's overall performance and recurring playing style across the available matches. Focus on the most meaningful patterns.
 
-### Match-to-Match Comparison
-Explain meaningful differences between performances, including positional differences when relevant.
+### Attacking
+Analyze goals, assists, shots, shots on target, shot accuracy, goal conversion, key passes, and dribbles when those statistics are available. Explain what the statistics demonstrate and what they might suggest about attacking contribution.
 
-### Recurring Strengths
-Identify abilities that appear consistently across multiple matches. Support them with statistics.
+### Passing
+Analyze passes attempted, passes completed, and passing accuracy. Discuss passing consistency and patterns across matches when the data supports it.
 
-### Areas for Development
-Identify recurring weaknesses or skills that could benefit from improvement. Explain the evidence.
+### Defending
+Analyze tackles and interceptions. Discuss defensive contribution and patterns across matches when the data supports it.
 
-### Personalized Training Plan
-Give 3-5 specific training recommendations. Explain why each matters and suggest practical drills connected to the player's statistical patterns.
+### Areas to Improve
+Identify the most important development opportunities supported by the statistics. Give specific, practical training recommendations and drills. Connect each recommendation to the evidence.
 
-Be detailed, constructive, and avoid generic advice.`
+Be detailed, constructive, and specific. Avoid generic advice and repeated information.`
             },
             {
                 role: "user",
@@ -198,16 +244,20 @@ Identify meaningful patterns rather than simply listing numbers. Avoid repeating
 
 Focus on:
 - The player's overall playing style.
-- Consistent strengths across matches.
+- Attacking contribution.
+- Passing performance.
+- Defensive contribution.
 - Areas that repeatedly need improvement.
 - Differences between performances in different positions.
 - A personalized training plan based on the actual statistical evidence.
 
 Do not invent match events, scores, results, or tactical instructions. If the available data does not support a conclusion, acknowledge that limitation.
 
-Do not suggest additional statistics to track.`
+Do not suggest additional statistics to track.
+
+Use all five exact headings requested in your instructions. Do not add, remove, rename, or combine sections.`
             }
-        ], 1000);
+        ], 1300);
 
         const formattedReports = individualReports.map((item, index) => {
             const match = item.match;
@@ -222,8 +272,18 @@ Do not suggest additional statistics to track.`
             comparison
         ].join("\n\n");
 
+        const sections = extractSections(comparison);
+
         res.json({
-            analysis: analysis
+            analysis: analysis,
+            sections: {
+                summary: sections["Overall Summary"],
+                attacking: sections["Attacking"],
+                passing: sections["Passing"],
+                defending: sections["Defending"],
+                improvements: sections["Areas to Improve"],
+                fullAnalysis: analysis
+            }
         });
 
     } catch (error) {

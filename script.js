@@ -11,6 +11,7 @@ let performanceChart = null;
 let contributionsChart = null;
 let shotsChart = null;
 let editingMatchIndex = null;
+let currentAISections = null;
 
 function saveMatches() {
     localStorage.setItem("soccerIQMatches", JSON.stringify(matches));
@@ -619,6 +620,189 @@ const aiAnalysis = document.getElementById("ai-analysis");
 const aiStatus = document.getElementById("ai-status");
 const aiResult = document.getElementById("ai-result");
 
+function addFormattedContent(container, content) {
+    const lines = String(content || "").split("\n");
+    let currentList = null;
+
+    lines.forEach(function(line) {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine || /^#{1,6}\s*$/.test(trimmedLine)) {
+            currentList = null;
+            return;
+        }
+
+        if (/^#{1,6}\s+/.test(trimmedLine)) {
+            currentList = null;
+
+            const heading = document.createElement("h4");
+            heading.textContent = trimmedLine.replace(/^#{1,6}\s*/, "").replace(/\*\*/g, "");
+            container.appendChild(heading);
+
+        } else if (trimmedLine.startsWith("- ") || trimmedLine.startsWith("* ")) {
+            if (!currentList) {
+                currentList = document.createElement("ul");
+                container.appendChild(currentList);
+            }
+
+            const item = document.createElement("li");
+            item.textContent = trimmedLine.substring(2).replace(/\*\*/g, "");
+            currentList.appendChild(item);
+
+        } else {
+            currentList = null;
+
+            const paragraph = document.createElement("p");
+            paragraph.textContent = trimmedLine.replace(/\*\*/g, "");
+            container.appendChild(paragraph);
+        }
+    });
+}
+
+function createTopicCard(title, description, iconName, sectionKey) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ai-topic-card";
+
+    const icon = document.createElement("span");
+    icon.className = "ai-topic-icon";
+    icon.textContent = iconName;
+
+    const textContainer = document.createElement("span");
+    textContainer.className = "ai-topic-text";
+
+    const heading = document.createElement("strong");
+    heading.textContent = title;
+
+    const descriptionText = document.createElement("span");
+    descriptionText.textContent = description;
+
+    textContainer.appendChild(heading);
+    textContainer.appendChild(descriptionText);
+
+    const arrow = document.createElement("span");
+    arrow.className = "ai-topic-arrow";
+    arrow.textContent = "→";
+
+    button.appendChild(icon);
+    button.appendChild(textContainer);
+    button.appendChild(arrow);
+
+    button.addEventListener("click", function() {
+        renderAITopic(sectionKey, title);
+    });
+
+    return button;
+}
+
+function renderAIOverview() {
+    aiResult.replaceChildren();
+
+    const overview = document.createElement("div");
+    overview.className = "ai-summary-card";
+
+    const eyebrow = document.createElement("p");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = "YOUR PERFORMANCE AT A GLANCE";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Overall Summary";
+
+    const summaryContent = document.createElement("div");
+    summaryContent.className = "ai-summary-content";
+
+    addFormattedContent(summaryContent, currentAISections.summary);
+
+    overview.appendChild(eyebrow);
+    overview.appendChild(heading);
+    overview.appendChild(summaryContent);
+
+    aiResult.appendChild(overview);
+
+    const topicsHeading = document.createElement("h3");
+    topicsHeading.className = "ai-explore-heading";
+    topicsHeading.textContent = "Explore Your Performance";
+
+    aiResult.appendChild(topicsHeading);
+
+    const topics = [
+        {
+            title: "Attacking",
+            description: "Goals, assists, shooting and chance creation",
+            icon: "⚽",
+            key: "attacking"
+        },
+        {
+            title: "Passing",
+            description: "Passing accuracy and distribution",
+            icon: "↗",
+            key: "passing"
+        },
+        {
+            title: "Defending",
+            description: "Tackles, interceptions and defensive work",
+            icon: "🛡",
+            key: "defending"
+        },
+        {
+            title: "Areas to Improve",
+            description: "Development opportunities and training advice",
+            icon: "🎯",
+            key: "improvements"
+        },
+        {
+            title: "Full Analysis",
+            description: "All individual match reports and overall analysis",
+            icon: "▤",
+            key: "fullAnalysis"
+        }
+    ];
+
+    const topicGrid = document.createElement("div");
+    topicGrid.className = "ai-topic-grid";
+
+    topics.forEach(function(topic) {
+        topicGrid.appendChild(
+            createTopicCard(
+                topic.title,
+                topic.description,
+                topic.icon,
+                topic.key
+            )
+        );
+    });
+
+    aiResult.appendChild(topicGrid);
+}
+
+function renderAITopic(sectionKey, title) {
+    aiResult.replaceChildren();
+
+    const detailScreen = document.createElement("div");
+    detailScreen.className = "ai-detail-screen";
+
+    const backButton = document.createElement("button");
+    backButton.type = "button";
+    backButton.className = "ai-back-button";
+    backButton.textContent = "← Back to Overview";
+    backButton.addEventListener("click", renderAIOverview);
+
+    const heading = document.createElement("h3");
+    heading.className = "ai-detail-heading";
+    heading.textContent = title;
+
+    const content = document.createElement("div");
+    content.className = "ai-detail-content";
+
+    addFormattedContent(content, currentAISections[sectionKey]);
+
+    detailScreen.appendChild(backButton);
+    detailScreen.appendChild(heading);
+    detailScreen.appendChild(content);
+
+    aiResult.appendChild(detailScreen);
+}
+
 analyzeButton.addEventListener("click", async function() {
     if (matches.length === 0) {
         alert("Please add at least one match before requesting an analysis.");
@@ -647,44 +831,13 @@ analyzeButton.addEventListener("click", async function() {
             throw new Error(data.error || "Unable to generate analysis.");
         }
 
+        if (!data.sections) {
+            throw new Error("The AI response did not contain the expected sections. Please try again.");
+        }
+
+        currentAISections = data.sections;
         aiStatus.textContent = "Analysis complete";
-
-        const lines = data.analysis.split("\n");
-        let currentList = null;
-
-        lines.forEach(function(line) {
-            const trimmedLine = line.trim();
-
-            if (!trimmedLine) {
-                currentList = null;
-                return;
-            }
-
-            if (trimmedLine.startsWith("### ") || trimmedLine.startsWith("## ") || trimmedLine.startsWith("**")) {
-                currentList = null;
-
-                const heading = document.createElement("h3");
-                heading.textContent = trimmedLine.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/:$/, "");
-                aiResult.appendChild(heading);
-
-            } else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
-                if (!currentList) {
-                    currentList = document.createElement("ul");
-                    aiResult.appendChild(currentList);
-                }
-
-                const item = document.createElement("li");
-                item.textContent = trimmedLine.substring(2).replace(/\*\*/g, "");
-                currentList.appendChild(item);
-
-            } else {
-                currentList = null;
-
-                const paragraph = document.createElement("p");
-                paragraph.textContent = trimmedLine.replace(/\*\*/g, "");
-                aiResult.appendChild(paragraph);
-            }
-        });
+        renderAIOverview();
 
     } catch (error) {
         aiStatus.textContent = "Analysis unavailable";
