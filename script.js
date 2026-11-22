@@ -5,6 +5,7 @@ const matchForm = document.getElementById("match-form");
 
 let matches = JSON.parse(localStorage.getItem("soccerIQMatches")) || [];
 let performanceChart = null;
+let contributionsChart = null;
 
 function renderMatchHistory() {
     const historyContainer = document.getElementById("match-history");
@@ -136,6 +137,78 @@ function updatePerformanceChart() {
     });
 }
 
+function updateContributionsChart() {
+    const chartCanvas = document.getElementById("contributions-chart");
+
+    const chartLabels = matches.map(function(match) {
+        return match.opponent;
+    });
+
+    const goalsData = matches.map(function(match) {
+        return match.goals;
+    });
+
+    const assistsData = matches.map(function(match) {
+        return match.assists;
+    });
+
+    if (contributionsChart) {
+        contributionsChart.destroy();
+    }
+
+    contributionsChart = new Chart(chartCanvas, {
+        type: "bar",
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: "Goals",
+                    data: goalsData,
+                    backgroundColor: "#65d68a",
+                    borderRadius: 5
+                },
+                {
+                    label: "Assists",
+                    data: assistsData,
+                    backgroundColor: "#5b9bd5",
+                    borderRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#c5d1c9"
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: "#819087",
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: "#2b3c30"
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: "#819087"
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
 addMatchButton.addEventListener("click", function() {
     matchModal.hidden = false;
 });
@@ -214,6 +287,7 @@ matchForm.addEventListener("submit", function(event) {
     updateDashboard();
     renderMatchHistory();
     updatePerformanceChart();
+    updateContributionsChart();
 
     matchForm.reset();
     matchModal.hidden = true;
@@ -224,3 +298,4 @@ matchForm.addEventListener("submit", function(event) {
 updateDashboard();
 renderMatchHistory();
 updatePerformanceChart();
+updateContributionsChart();
