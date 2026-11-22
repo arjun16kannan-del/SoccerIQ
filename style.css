@@ -328,3 +328,45 @@ h1 {
         height: 250px;
     }
 }
+.ai-analysis {
+    margin-top: 25px;
+    padding: 22px;
+    background: #24352a;
+    border: 1px solid #35483a;
+    border-radius: 10px;
+    line-height: 1.7;
+}
+
+.ai-analysis[hidden] {
+    display: none;
+}
+
+#ai-status {
+    color: #65d68a;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+#ai-result {
+    color: #c5d1c9;
+    font-size: 14px;
+}
+
+#ai-result h3 {
+    color: #65d68a;
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+
+#ai-result p {
+    margin-bottom: 12px;
+}
+
+#ai-result ul {
+    padding-left: 22px;
+    margin-bottom: 15px;
+}
+
+#ai-result li {
+    margin-bottom: 7px;
+}

@@ -294,7 +294,85 @@ matchForm.addEventListener("submit", function(event) {
 
     alert("Match saved successfully!");
 });
+const analyzeButton = document.getElementById("analyze-button");
+const aiAnalysis = document.getElementById("ai-analysis");
+const aiStatus = document.getElementById("ai-status");
+const aiResult = document.getElementById("ai-result");
 
+analyzeButton.addEventListener("click", async function() {
+    if (matches.length === 0) {
+        alert("Please add at least one match before requesting an analysis.");
+        return;
+    }
+
+    aiAnalysis.hidden = false;
+    aiStatus.textContent = "Analyzing your matches... This may take a little while.";
+    aiResult.replaceChildren();
+    analyzeButton.disabled = true;
+
+    try {
+        const response = await fetch("http://localhost:3000/api/analyze", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                matches: matches
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Unable to generate analysis.");
+        }
+
+        aiStatus.textContent = "Analysis complete";
+
+const lines = data.analysis.split("\n");
+let currentList = null;
+
+lines.forEach(function(line) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine) {
+        currentList = null;
+        return;
+    }
+
+    if (trimmedLine.startsWith("### ") || trimmedLine.startsWith("## ") || trimmedLine.startsWith("**")) {
+        currentList = null;
+
+        const heading = document.createElement("h3");
+        heading.textContent = trimmedLine.replace(/^#+\s*/, "").replace(/\*\*/g, "").replace(/:$/, "");
+        aiResult.appendChild(heading);
+
+    } else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
+        if (!currentList) {
+            currentList = document.createElement("ul");
+            aiResult.appendChild(currentList);
+        }
+
+        const item = document.createElement("li");
+        item.textContent = trimmedLine.substring(2).replace(/\*\*/g, "");
+        currentList.appendChild(item);
+
+    } else {
+        currentList = null;
+
+        const paragraph = document.createElement("p");
+        paragraph.textContent = trimmedLine.replace(/\*\*/g, "");
+        aiResult.appendChild(paragraph);
+    }
+});
+
+    } catch (error) {
+        aiStatus.textContent = "Analysis unavailable";
+        aiResult.textContent = error.message;
+    } finally {
+        analyzeButton.disabled = false;
+    }
+});
 updateDashboard();
 renderMatchHistory();
 updatePerformanceChart();
