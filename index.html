@@ -94,6 +94,18 @@
         No matches recorded yet. Add your first match to get started!
     </p>
 </section>
+<section class="panel analytics-panel">
+    <div class="history-header">
+        <div>
+            <p class="eyebrow">PERFORMANCE TRENDS</p>
+            <h2>Pass Accuracy Over Time</h2>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="pass-accuracy-chart"></canvas>
+    </div>
+</section>
     </main>
 
     <div class="modal-overlay" id="match-modal" hidden>
@@ -194,6 +206,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ const closeModalButton = document.getElementById("close-modal");
 const matchForm = document.getElementById("match-form");
 
 let matches = JSON.parse(localStorage.getItem("soccerIQMatches")) || [];
+let performanceChart = null;
 
 function renderMatchHistory() {
     const historyContainer = document.getElementById("match-history");
@@ -62,6 +63,77 @@ function updateDashboard() {
     document.getElementById("total-assists").textContent = totalAssists;
     document.getElementById("pass-accuracy").textContent =
         passAccuracy === null ? "--%" : passAccuracy + "%";
+}
+
+function updatePerformanceChart() {
+    const chartCanvas = document.getElementById("pass-accuracy-chart");
+
+    const chartLabels = matches.map(function(match) {
+        return match.opponent;
+    });
+
+    const chartData = matches.map(function(match) {
+        return match.passesAttempted > 0
+            ? Math.round((match.passesCompleted / match.passesAttempted) * 100)
+            : null;
+    });
+
+    if (performanceChart) {
+        performanceChart.destroy();
+    }
+
+    performanceChart = new Chart(chartCanvas, {
+        type: "line",
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: "Pass Accuracy",
+                data: chartData,
+                borderColor: "#65d68a",
+                backgroundColor: "rgba(101, 214, 138, 0.15)",
+                borderWidth: 3,
+                pointBackgroundColor: "#65d68a",
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "#c5d1c9"
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        color: "#819087",
+                        callback: function(value) {
+                            return value + "%";
+                        }
+                    },
+                    grid: {
+                        color: "#2b3c30"
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: "#819087"
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
 }
 
 addMatchButton.addEventListener("click", function() {
@@ -141,6 +213,7 @@ matchForm.addEventListener("submit", function(event) {
 
     updateDashboard();
     renderMatchHistory();
+    updatePerformanceChart();
 
     matchForm.reset();
     matchModal.hidden = true;
@@ -150,3 +223,4 @@ matchForm.addEventListener("submit", function(event) {
 
 updateDashboard();
 renderMatchHistory();
+updatePerformanceChart();
