@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoccerIQ | Performance Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <div class="logo">Soccer<span>IQ</span></div>
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Match History</a>
+            <a href="#">Analytics</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="welcome">
+            <div>
+                <p class="eyebrow">PLAYER OVERVIEW</p>
+                <h1>Your Performance</h1>
+                <p class="subtitle">Track your progress. Understand your game.</p>
+            </div>
+            <button type="button" class="add-match">+ Add Match</button>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <p>Total Matches</p>
+                <h2 id="total-matches">0</h2>
+                <span>Matches recorded</span>
+            </div>
+
+            <div class="stat-card">
+                <p>Goals</p>
+                <h2 id="total-goals">0</h2>
+                <span>Total goals scored</span>
+            </div>
+
+            <div class="stat-card">
+                <p>Assists</p>
+                <h2 id="total-assists">0</h2>
+                <span>Total assists</span>
+            </div>
+
+            <div class="stat-card">
+                <p>Pass Accuracy</p>
+                <h2 id="pass-accuracy">--%</h2>
+                <span>Average completion rate</span>
+            </div>
+        </section>
+
+        <section class="content-grid">
+            <div class="panel">
+                <h3>Performance Overview</h3>
+                <p class="placeholder">Your performance charts will appear here.</p>
+            </div>
+
+            <div class="panel">
+                <h3>Performance Insights</h3>
+                <p class="placeholder">Your personalized insights will appear here.</p>
+            </div>
+        </section>
+        <section class="panel history-panel">
+    <div class="history-header">
+        <div>
+            <p class="eyebrow">YOUR RECORDS</p>
+            <h2>Match History</h2>
+        </div>
+        <span id="history-count">0 matches</span>
+    </div>
+
+    <div class="table-container">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Opponent</th>
+                    <th>Date</th>
+                    <th>Position</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>Pass Accuracy</th>
+                </tr>
+            </thead>
+            <tbody id="match-history">
+            </tbody>
+        </table>
+    </div>
+
+    <p id="empty-history" class="placeholder">
+        No matches recorded yet. Add your first match to get started!
+    </p>
+</section>
+    </main>
+
+    <div class="modal-overlay" id="match-modal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <p class="eyebrow">MATCH TRACKING</p>
+                    <h2>Add a Match</h2>
+                </div>
+                <button type="button" class="close-modal" id="close-modal">&times;</button>
+            </div>
+
+            <form id="match-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="opponent">Opponent</label>
+                        <input type="text" id="opponent" name="opponent" placeholder="e.g. Lincoln High" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="match-date">Match Date</label>
+                        <input type="date" id="match-date" name="date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="position">Position</label>
+                        <select id="position" name="position" required>
+                            <option value="">Select position</option>
+                            <option>Striker</option>
+                            <option>Winger</option>
+                            <option>Central Midfielder</option>
+                            <option>Defensive Midfielder</option>
+                            <option>Attacking Midfielder</option>
+                            <option>Fullback / Wingback</option>
+                            <option>Center Back</option>
+                            <option>Goalkeeper</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="minutes">Minutes Played</label>
+                        <input type="number" id="minutes" name="minutes" min="0" max="130" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="goals">Goals</label>
+                        <input type="number" id="goals" name="goals" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assists">Assists</label>
+                        <input type="number" id="assists" name="assists" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shots">Shots</label>
+                        <input type="number" id="shots" name="shots" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shots-on-target">Shots on Target</label>
+                        <input type="number" id="shots-on-target" name="shotsOnTarget" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passes-attempted">Passes Attempted</label>
+                        <input type="number" id="passes-attempted" name="passesAttempted" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="passes-completed">Passes Completed</label>
+                        <input type="number" id="passes-completed" name="passesCompleted" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="key-passes">Key Passes</label>
+                        <input type="number" id="key-passes" name="keyPasses" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tackles">Tackles Won</label>
+                        <input type="number" id="tackles" name="tackles" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interceptions">Interceptions</label>
+                        <input type="number" id="interceptions" name="interceptions" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dribbles">Successful Dribbles</label>
+                        <input type="number" id="dribbles" name="dribbles" min="0" value="0" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="add-match submit-match">Save Match</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
